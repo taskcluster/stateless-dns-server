@@ -22,10 +22,10 @@ IN  <prefix>-ec2.tc.net.   CNAME  <prefix-with-dots>.ec2.aws.net.
 Where `<prefix-with-dots>` is `<prefix>` with `-dot-` replaced with `.`.
 
 Using this DNS server it's possible to use
-`ec2-<ip>-dot-<region>-ec2.taskcluster-worker.net` as hostname for our workers
-on EC2, by mapping `-ec2.taskcluster-worker.net` to `.compute.amazonaws.com`.
-No need for dynamic DNS, no setup, no cleanup, all we need is a wild-card SSL
-certificate for `*.taskcluster-worker.net` baked into our AMI.
+`ec2-<ip>-dot-<region>-dot-compute-ec2.taskcluster-worker.net` as hostname
+for our workers on EC2, by mapping `-ec2.taskcluster-worker.net` to
+`.amazonaws.com`. No need for dynamic DNS, no setup, no cleanup, all we need is
+a wild-card SSL certificate for `*.taskcluster-worker.net` baked into our AMI.
 
 By default DNS records are given a 600 seconds to live, you can modify this
 using the `TTL` environment variable.
