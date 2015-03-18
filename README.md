@@ -89,3 +89,8 @@ this repository with the following targets. You can set the environment variable
 
 When running locally you can test the response from the DNS server using `dig`
 under Linux. For example `dig @localhost -p 55553 <label>.test-domain.local`.
+
+Reporting Issues
+----------------
+Issues should be reported under the under the [Testing :: TaskCluster component at bugzilla.mozilla.org](https://bugzilla.mozilla.org/enter_bug.cgi?product=Testing&component=TaskCluster).
+View issues with this [saved search](http://mzl.la/1GqNUDI).
