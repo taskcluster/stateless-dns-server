@@ -1,10 +1,19 @@
 {
-  "name":     "taskcluster-worker-dns-server",
-  "version":  "1.0.0",
-  "private":  true,
+  "name":                   "stateless-dns-server",
+  "version":                "0.1.0",
+  "scripts": {
+    "test":                 "mocha --ui tdd --reporter spec test.js"
+  },
   "dependencies": {
     "lodash":               "^3.3.1",
-    "native-dns":           "^0.7.0"
+    "native-dns":           "^0.7.0",
+    "thirty-two":           "^0.0.2",
+    "buffer-read":          "^0.0.2",
+    "buffer-write":         "^0.0.2",
+    "promise":              "^6.1.0"
+  },
+  "devDependencies": {
+    "mocha":                "^2.2.1"
   },
   "engines": {
     "node":                 "0.12.x"

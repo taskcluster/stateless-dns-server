@@ -1,34 +1,80 @@
-TaskCluster Worker DNS Server
-=============================
+Stateless DNS Server
+====================
+This is a stateless DNS server that returns `A` records for sub-domains, where
+the sub-domain label encodes the IP-address, expiration date, a random salt and
+an HMAC-SHA256 signature truncated to 128 bits.
 
-This is a simple DNS server that rewrites queries for sub-domains in a given
-format into complicated multi-level sub-domains of another domain. We use this
-to assign a sub-domain name to all EC2 nodes, under a domain for which we have
-a wild-card SSL certificate.
+This is allows for assigning temporary sub-domains names to nodes with a public
+IP-address. The same problem can also be solved with dynamic DNS server, but
+such entries often requires clean-up. The beauty of this approach is that the
+DNS server is state-less, so there is no stale DNS records to discard.
+
+In TaskCluster this is used to assign temporary sub-domain names to EC2 spot
+nodes, such that we can host HTTPS resources, such as live logs, without
+updating and cleaning up the state of the DNS server.
+
+Notice, that with IP-address, expiration date, random salt and HMAC-SHA256
+signature encoded in the sub-domain label, you cannot decide which sub-domain
+label you wish to have. Hence, this is only useful in cases were the hostname
+for your node is transmitted to clients by other means, for example in a message
+over RabbitMQ or as temporary entry in a database. Further more, to serve HTTPS
+content you'll need a wild-card SSL certificate, for domain managed by this
+DNS server.
+
+Note, this obviously doesn't have many applications, as the sub-domain label
+is stateful. It's mostly for serving HTTPS content from nodes that come and go
+quickly with minimal setup, where the hostname is transmitted by other means.
+Generally, any case where you might consider using the default EC2 hostname.
+
+Sub-domain Label Generation
+---------------------------
+The sub-domain label encodes the following parameters:
+ * `ip`, address to which the `A` record returned should point,
+ * `expires`, expiration of sub-domain as number of ms since epoch,
+ * `salt`, random salt, allowing for generation of multiple sub-domain labels
+    for each IP-address, and,
+ * `signature`, HMAC-SHA256 signature of `ip`, `expires` and `salt` truncated
+    to 128 bit.
+
+The `expires` property is encoded as a big-endian 64 bit signed integer. The
+`salt` property is encoded as bit-endian 16 bit unsigned integer. All properties
+are concatenated and base32 (RFC 3548) encoded to form the sub-domain label.
+
+Example pseudo code:
+```
+  ip        = a.b.c.d
+  expires   = Date.now() + number of ms to expiration
+  salt      = random 16 bit integer
+  signature = HMAC-SHA256(ip + expires + salt).slice(0, 16);
+  label     = ip + expires + salt + signature
+  hostname  = label + '.' + DOMAIN
+```
+
+You can also load this npm package as a library and use it to generate
+sub-domain labels. See example below:
+```js
+var statelessDNSServer = require('stateless-dns-server');
+
+var ip        = [127, 0, 0, 1];
+var expires   = new Date(Date.now() + 10 * 60 * 60 * 1000);   // 10 minutes
+var secret    = '...';  // 256 bit randomness recommended
+var domain    = 'taskcluster-worker.net';
+var hostname  = statelessDNSServer.createHostname(ip, expires, secret, domain);
+console.log(hostname);
+// out: miy6hl7234h3kcycsqfhrxgnltaa2oc4owdlo5bnvbpa5mzd.taskcluster-worker.net
+```
+
+The resulting `hostname` in the example above will resolved to `127.0.0.1` for
+the next 10 minutes, after which only cached DNS entries may stick around,
+depend on the configured `TTL`.
 
 Configuration
 -------------
-The docker image built with `make image` takes an environment variable
-`MAPPINGS`. This variables is a list of mappings from source sub-domain suffixes
-to target sub-domain suffixes. Written as `[source]=>[target]` separated by `,`
-if you want more than one mapping.
-
-This is best explained with an example, if `MAPPINGS` is set to
-`-ec2.tc.net=>.ec2.aws.net`, then a query for `<prefix>-ec2.tc.net` will result
-in a CNAME record:
-```
-IN  <prefix>-ec2.tc.net.   CNAME  <prefix-with-dots>.ec2.aws.net.
-```
-Where `<prefix-with-dots>` is `<prefix>` with `-dot-` replaced with `.`.
-
-Using this DNS server it's possible to use
-`ec2-<ip>-dot-<region>-dot-compute-ec2.taskcluster-worker.net` as hostname
-for our workers on EC2, by mapping `-ec2.taskcluster-worker.net` to
-`.amazonaws.com`. No need for dynamic DNS, no setup, no cleanup, all we need is
-a wild-card SSL certificate for `*.taskcluster-worker.net` baked into our AMI.
-
-By default DNS records are given a 600 seconds to live, you can modify this
-using the `TTL` environment variable.
+The docker image takes the following environment variables for configuration.
+ * `PORT`, port to host DNS server on (defaults to `55553`),
+ * `TTL`, time-to-live for DNS records returned in seconds (defaults to `600`),
+ * `DOMAIN`, domain under which to manage sub-domains (**required**), and
+ * `SECRET`, secret token for HMAC-SHA256 signature generation (**required**).
 
 Development
 -----------
@@ -37,9 +83,9 @@ this repository with the following targets. You can set the environment variable
 `REGISTRY` to overwrite the default registry.
 
  * `make image`, build docker image
- * `make test`, test docker image with the mapping `-ec2.tc.net=>.ec2.aws.net`
-    running on port `55553` of localhost.
+ * `make test`, test docker image with `DOMAIN=test-domain.local` and
+    `SECRET=no-secret` running on port `55553` of localhost.
  * `make push`, push the image to registry.
 
 When running locally you can test the response from the DNS server using `dig`
-under linux. For example `dig @localhost -p 55553 level2-dot-level1-ec2.tc.net`.
+under Linux. For example `dig @localhost -p 55553 <label>.test-domain.local`.
