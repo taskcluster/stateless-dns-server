@@ -2,7 +2,12 @@
   "name":                   "stateless-dns-server",
   "version":                "0.1.0",
   "scripts": {
+    "start":                "node server.js",
     "test":                 "mocha --ui tdd --reporter spec test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url":  "https://github.com/taskcluster/stateless-dns-server.git"
   },
   "dependencies": {
     "lodash":               "^3.3.1",

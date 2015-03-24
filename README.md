@@ -1,4 +1,4 @@
-Stateless DNS Server
+Stateless DNS Server [![Circle CI](https://circleci.com/gh/taskcluster/stateless-dns-server.svg?style=badge)](https://circleci.com/gh/taskcluster/stateless-dns-server)
 ====================
 This is a stateless DNS server that returns `A` records for sub-domains, where
 the sub-domain label encodes the IP-address, expiration date, a random salt and
@@ -76,9 +76,10 @@ The docker image takes the following environment variables for configuration.
  * `DOMAIN`, domain under which to manage sub-domains (**required**), and
  * `SECRET`, secret token for HMAC-SHA256 signature generation (**required**).
 
-Development
------------
-To make the docker image easy to work with there is a very simple makefile in
+Development & Deployment
+------------------------
+As usual `npm test` will run tests over localhost. For deployment you can
+build a docker image that is easy to deploy. There is a very simple makefile in
 this repository with the following targets. You can set the environment variable
 `REGISTRY` to overwrite the default registry.
 
@@ -89,6 +90,8 @@ this repository with the following targets. You can set the environment variable
 
 When running locally you can test the response from the DNS server using `dig`
 under Linux. For example `dig @localhost -p 55553 <label>.test-domain.local`.
+This is useful before deploying, or just after deployment to verify that
+everything works.
 
 Reporting Issues
 ----------------
