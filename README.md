@@ -56,7 +56,7 @@ sub-domain labels. See example below:
 var statelessDNSServer = require('stateless-dns-server');
 
 var ip        = [127, 0, 0, 1];
-var expires   = new Date(Date.now() + 10 * 60 * 60 * 1000);   // 10 minutes
+var expires   = new Date(Date.now() + 10 * 60 * 1000);   // 10 minutes
 var secret    = '...';  // 256 bit randomness recommended
 var domain    = 'taskcluster-worker.net';
 var hostname  = statelessDNSServer.createHostname(ip, expires, secret, domain);
