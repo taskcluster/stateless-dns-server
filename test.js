@@ -81,6 +81,16 @@ suite("Stateless DNS Server", function() {
     return queryDNSServer(hostname, '127.0.0.1');
   });
 
+  test("Resolve valid sub-domain in upper-case", function() {
+    var hostname  = statelessDNSServer.createHostname(
+      [127, 0, 0, 1],
+      new Date(Date.now() + 10 * 60 * 60 * 1000),
+      secret, domain
+    ).toUpperCase();
+
+    return queryDNSServer(hostname, '127.0.0.1');
+  });
+
   test("Resolve valid sub-domain with different ip", function() {
     var hostname  = statelessDNSServer.createHostname(
       [124, 252, 123, 87],
