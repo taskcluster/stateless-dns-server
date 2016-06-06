@@ -42,7 +42,7 @@ var createServer = function(options) {
       console.log("  Question: '%s'", q.name);
 
       // Make sure it ends with the domain configured
-      if (!_.endsWith(q.name, "." + options.domain)) {
+      if (!_.endsWith(q.name.toLowerCase(), "." + options.domain)) {
         return;
       }
 
