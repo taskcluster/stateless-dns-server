@@ -42,13 +42,13 @@ var createServer = function(options) {
       console.log("  Question: '%s'", q.name);
 
       // Make sure it ends with the domain configured
-      if (!_.endsWith(q.name.toLowerCase(), "." + options.domain)) {
+      if (!_.endsWith(q.name.toLowerCase(), options.domain)) {
         return;
       }
 
       // Find labels
       var labels = q.name.split('.');
-      if (labels.slice(1).join('.') !== options.domain) {
+      if (labels.length !== 3) {
         return;
       }
 
