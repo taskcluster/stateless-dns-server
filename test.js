@@ -6,7 +6,7 @@ suite("Stateless DNS Server", function() {
   // Configurations
   var port      = 55553;
   var secret    = 'no-secret';
-  var domain    = 'test-domain.local';
+  var domain    = 'test-domain.co.uk';
 
   // Server setup and teardown
   var server = null;
@@ -136,6 +136,16 @@ suite("Stateless DNS Server", function() {
       [127, 0, 0, 1],
       new Date(Date.now() + 10 * 60 * 60 * 1000),
       secret, "wrong-domain.local"
+    );
+
+    return queryDNSServer(hostname, null);
+  });
+
+  test("Can't resolve sub-domain of longer name", function() {
+    var hostname  = statelessDNSServer.createHostname(
+      [127, 0, 0, 1],
+      new Date(Date.now() + 10 * 60 * 60 * 1000),
+      secret, "my-test-domain.co.uk"
     );
 
     return queryDNSServer(hostname, null);
