@@ -12,7 +12,7 @@ push:
 test:
 	docker run -ti --rm --name tc-dns-server -p 55553:55553/udp \
 						 -e DOMAIN='test-domain.local' \
-						 -e SECRET='no-secret' \
+						 -e PRIMARY_SECRET='no-secret' \
 						 "${REGISTRY}/stateless-dns-server"
 
 clean:
