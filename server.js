@@ -6,6 +6,15 @@ var Reader    = require('buffer-read');
 var Promise   = require('promise');
 var assert    = require('assert');
 
+/** Fixed-time comparison of signatures */
+var compareSignatures = function(s1, s2) {
+  var mismatch = 0;
+  for(var i = 0; i < 16; i++) {
+    mismatch |= (s1[i] ^ s2[i]);
+  }
+  return mismatch === 0;
+};
+
 /**
  * Create stateless DNS server
  *
@@ -14,7 +23,7 @@ var assert    = require('assert');
  *   port:     55553,    // UDP port listen on (default 55553)
  *   ttl:      600,      // DNS record time-to-live in seconds (default 10 min)
  *   domain:   '...',    // Domain for which we host DNS
- *   secret:   '...'     // HMAC signing secret used in signatures
+ *   secrets:   '...'    // HMAC signing secrets that can be used in signatures
  * }
  */
 var createServer = function(options) {
@@ -26,7 +35,11 @@ var createServer = function(options) {
   assert(typeof options.port   == 'number', "Expected 'port' as number");
   assert(typeof options.ttl    == 'number', "Expected 'ttl' as number");
   assert(typeof options.domain == 'string', "Expected 'domain' as a string");
-  assert(typeof options.secret == 'string', "Expected 'secret' as a string");
+  assert(options.secrets instanceof Array, "Expected 'secrets' as an array");
+  assert(options.secrets.length > 0, "Expected at least one secret");
+  options.secrets.forEach(function(secret) {
+    assert(typeof secret == 'string', "Expected 'secrets' to be strings");
+  });
 
   // Check that crypto has support for sha256
   assert(crypto.getHashes().indexOf('sha256') !== -1,
@@ -96,17 +109,22 @@ var createServer = function(options) {
 
       // Find signature
       var s1 = reader.slice(16);
-      var s2 = crypto.createHmac('sha256', options.secret)
-                     .update(data.slice(0, 4 + 8 + 2))
-                     .digest()
-                     .slice(0, 16);
+      var valid = false;
+      // Test each possible secret, always test both keys, just for good measure
+      // who knows if an attacker could use this for a side-channel attack.
+      options.secrets.forEach(function(secret) {
+        var s2 = crypto.createHmac('sha256', secret)
+          .update(data.slice(0, 4 + 8 + 2))
+          .digest()
+          .slice(0, 16);
+        // Validate signature
+        if (compareSignatures(s1, s2)) {
+          valid = true;
+        }
+      });
 
-      // Validate signature
-      var mismatch = 0;
-      for(var i = 0; i < 16; i++) {
-        mismatch |= (s1[i] ^ s2[i]);
-      }
-      if (mismatch !== 0) {
+      // Don't send an answer if the signature isn't valid
+      if (!valid) {
         return;
       }
 
@@ -147,11 +165,15 @@ module.exports = createServer;
 
 // If server.js is executed start the server
 if (!module.parent) {
+  var secrets = [
+    process.env.PRIMARY_SECRET,
+    process.env.SECONDARY_SECRET
+  ].filter(function(entry) { return entry != undefined; });
   createServer({
     port:       parseInt(process.env.PORT || 55553),
     ttl:        parseInt(process.env.TTL || 600),
     domain:     process.env.DOMAIN,
-    secret:     process.env.SECRET
+    secrets:    secrets
   }).then(function(server) {
     // If the socket closes, there is no reason to stay alive
     server.once('close', function() {

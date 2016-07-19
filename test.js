@@ -15,7 +15,7 @@ suite("Stateless DNS Server", function() {
       port:     port,
       ttl:      60,
       domain:   domain,
-      secret:   secret
+      secrets:  ["other secret", secret]
     }).then(function(server_) {
       server = server_;
     });
@@ -141,4 +141,3 @@ suite("Stateless DNS Server", function() {
     return queryDNSServer(hostname, null);
   });
 });
-

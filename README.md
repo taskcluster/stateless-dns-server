@@ -74,7 +74,9 @@ The docker image takes the following environment variables for configuration.
  * `PORT`, port to host DNS server on (defaults to `55553`),
  * `TTL`, time-to-live for DNS records returned in seconds (defaults to `600`),
  * `DOMAIN`, domain under which to manage sub-domains (**required**), and
- * `SECRET`, secret token for HMAC-SHA256 signature generation (**required**).
+ * `PRIMARY_SECRET`, secret token for HMAC-SHA256 signature generation (**required**).
+ * `SECONDARY_SECRET`, secret token for HMAC-SHA256 signature generation.
+(The server supports two secrets primary and secondary to support rotation).
 
 Development & Deployment
 ------------------------
@@ -85,7 +87,7 @@ this repository with the following targets. You can set the environment variable
 
  * `make image`, build docker image
  * `make test`, test docker image with `DOMAIN=test-domain.local` and
-    `SECRET=no-secret` running on port `55553` of localhost.
+    `PRIMARY_SECRET=no-secret` running on port `55553` of localhost.
  * `make push`, push the image to registry.
 
 When running locally you can test the response from the DNS server using `dig`
