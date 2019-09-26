@@ -3,7 +3,6 @@ var _         = require('lodash');
 var crypto    = require('crypto');
 var base32    = require('thirty-two');
 var Reader    = require('buffer-read');
-var Promise   = require('promise');
 var assert    = require('assert');
 
 /** Fixed-time comparison of signatures */
