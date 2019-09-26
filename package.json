@@ -1,26 +1,25 @@
 {
-  "name":                   "stateless-dns-server",
-  "version":                "0.1.0",
+  "name": "stateless-dns-server",
+  "version": "0.1.0",
   "scripts": {
-    "start":                "node server.js",
-    "test":                 "mocha --ui tdd --reporter spec test.js"
+    "start": "node server.js",
+    "test": "mocha --ui tdd --reporter spec test.js"
   },
   "repository": {
     "type": "git",
-    "url":  "https://github.com/taskcluster/stateless-dns-server.git"
+    "url": "https://github.com/taskcluster/stateless-dns-server.git"
   },
   "dependencies": {
-    "lodash":               "^3.3.1",
-    "native-dns":           "^0.7.0",
-    "thirty-two":           "^0.0.2",
-    "buffer-read":          "^0.0.2",
-    "buffer-write":         "^0.0.2",
-    "promise":              "^6.1.0"
+    "buffer-read": "^0.0.2",
+    "buffer-write": "^0.0.2",
+    "lodash": "^3.3.1",
+    "native-dns": "^0.7.0",
+    "thirty-two": "^0.0.2"
   },
   "devDependencies": {
-    "mocha":                "^2.2.1"
+    "mocha": "^2.2.1"
   },
   "engines": {
-    "node":                 "0.12.x"
+    "node": ">=8.15.x"
   }
 }
