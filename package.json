@@ -1,6 +1,6 @@
 {
   "name": "stateless-dns-server",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "scripts": {
     "start": "node server.js",
     "test": "mocha --ui tdd --reporter spec test.js"
