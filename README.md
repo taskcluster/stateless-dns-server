@@ -97,5 +97,5 @@ everything works.
 
 Reporting Issues
 ----------------
-Issues should be reported under the under the [Testing :: TaskCluster component at bugzilla.mozilla.org](https://bugzilla.mozilla.org/enter_bug.cgi?product=Testing&component=TaskCluster).
-View issues with this [saved search](http://mzl.la/1GqNUDI).
+Issues should be reported under the under the [Taskcluster :: Services component at bugzilla.mozilla.org](https://bugzilla.mozilla.org/enter_bug.cgi?product=Taskcluster&component=Services).
+View issues with this [saved search](https://bugzilla.mozilla.org/buglist.cgi?short_desc=dns&query_format=advanced&short_desc_type=allwordssubstr&product=TaskCluster&resolution=---https://bugzilla.mozilla.org/buglist.cgi?short_desc=dns&query_format=advanced&short_desc_type=allwordssubstr&product=TaskCluster&resolution=---&list_id=15212521).
