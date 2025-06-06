@@ -151,6 +151,9 @@ var createServer = function(options) {
       console.log("");
       resolve(server);
     });
+    server.once('socketError', function (err) {
+      reject(err);
+    });
     server.once('close', reject);
   });
 };
