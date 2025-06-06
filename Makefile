@@ -1,4 +1,4 @@
-REGISTRY ?= tutum.co/taskcluster
+REGISTRY ?= taskcluster
 
 all: image
 
