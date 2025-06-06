@@ -1,4 +1,4 @@
-REGISTRY ?= tutum.co/taskcluster
+REGISTRY ?= taskcluster
 
 all: image
 
@@ -13,6 +13,7 @@ test:
 	docker run -ti --rm --name tc-dns-server -p 55553:55553/udp \
 						 -e DOMAIN='test-domain.local' \
 						 -e PRIMARY_SECRET='no-secret' \
+						 -e TXT_RECORDS='{".": "text response", "sub": "subdomain text resopnse"}' \
 						 "${REGISTRY}/stateless-dns-server"
 
 clean:

@@ -77,6 +77,8 @@ The docker image takes the following environment variables for configuration.
  * `PRIMARY_SECRET`, secret token for HMAC-SHA256 signature generation (**required**).
  * `SECONDARY_SECRET`, secret token for HMAC-SHA256 signature generation.
 (The server supports two secrets primary and secondary to support rotation).
+* `TXT_RECORDS`, list of static responses for pre-defined hostnames and record types,
+for example: `{".": "some TXT response for the root domain", "_subdomain": "TXT response for subdomain"}`
 
 Development & Deployment
 ------------------------

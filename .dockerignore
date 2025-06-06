@@ -1,0 +1,12 @@
+node_modules
+
+.git
+.gitignore
+
+circle.yml
+
+test.js
+
+Makefile
+.dockerignore
+Dockerfile

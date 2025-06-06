@@ -15,7 +15,8 @@ suite("Stateless DNS Server", function() {
       port:     port,
       ttl:      60,
       domain:   domain,
-      secrets:  ["other secret", secret]
+      secrets:  ["other secret", secret],
+      txtRecords: {'.': 'TLD TXT', 'abc': 'abc TXT'},
     }).then(function(server_) {
       server = server_;
     });
@@ -26,10 +27,10 @@ suite("Stateless DNS Server", function() {
 
   // Utility function to fetch DNS query, assumes no reply if expectedIp isn't
   // given, otherwise it'll fail if not given in the reply
-  var queryDNSServer = function(hostname, expectedIp) {
+  var queryDNSServer = function(hostname, expectedIp, recordType = 'A') {
     var question = dns.Question({
       name:   hostname,
-      type:   'A',
+      type:   recordType,
     });
 
     var request = dns.Request({
@@ -45,14 +46,34 @@ suite("Stateless DNS Server", function() {
         if (err) {
           reject(err);
         }
+
         msg.answer.forEach(function (answer) {
-          if (!expectedIp) {
-            reject(new Error("Got unexpected answer: " + answer.address));
-          }
-          if (answer.address === expectedIp) {
-            resolve();
-          } else {
-            reject(new Error("Got unexpected answer: " + answer.address));
+          switch (recordType) {
+            case 'A': {
+              if (!expectedIp) {
+                reject(new Error("Got unexpected answer: " + answer.address));
+              }
+              if (answer.address === expectedIp) {
+                resolve();
+              } else {
+                reject(new Error("Got unexpected answer: " + answer.address));
+              }
+              break;
+            }
+            case 'TXT': {
+              const [txt] = answer.data; // comes as array of strings
+              if (!txt && !expectedIp) {
+                resolve(); // nothing was expected
+              }
+              if (txt !== expectedIp) {
+                reject(new Error("Got unexpected answer: " + txt));
+              }
+              resolve();
+              break;
+            }
+            default: {
+              reject(new Error("Got unexpected answer: " + answer.address));
+            }
           }
         });
       });
@@ -70,6 +91,18 @@ suite("Stateless DNS Server", function() {
       request.send();
     });
   };
+
+  test("Resolve top-level TXT domain", async function() {
+    return queryDNSServer(domain, 'TLD TXT', 'TXT')
+  });
+
+  test("Resolve subdomain TXT domain", async function() {
+    return queryDNSServer(`abc.${domain}`, 'abc TXT', 'TXT')
+  });
+
+  test("Resolve subdomain TXT domain", async function() {
+    return queryDNSServer(`no_records_known.${domain}`, null, 'TXT')
+  });
 
   test("Resolve valid sub-domain", function() {
     var hostname  = statelessDNSServer.createHostname(
