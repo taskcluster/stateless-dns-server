@@ -14,6 +14,9 @@ var compareSignatures = function(s1, s2) {
   return mismatch === 0;
 };
 
+// native-dns doesn't expose those constants for some reason
+const TYPE_TXT = 16;
+
 /**
  * Create stateless DNS server
  *
@@ -28,7 +31,7 @@ var compareSignatures = function(s1, s2) {
 var createServer = function(options) {
   options = _.defaults({}, options, {
     port:     55553,
-    ttl:      600
+    ttl:      600,
   });
   // Validate options
   assert(typeof options.port   == 'number', "Expected 'port' as number");
@@ -39,6 +42,8 @@ var createServer = function(options) {
   options.secrets.forEach(function(secret) {
     assert(typeof secret == 'string', "Expected 'secrets' to be strings");
   });
+  assert(typeof options.txtRecords === 'object' && !Array.isArray(options.txtRecords),
+    "Expected 'txtRecords' as an object with key:value")
 
   // Check that crypto has support for sha256
   assert(crypto.getHashes().indexOf('sha256') !== -1,
@@ -51,7 +56,20 @@ var createServer = function(options) {
   server.on('request', function (request, response) {
     console.log("Query from: '%s':", request.address.address);
     request.question.forEach(function(q) {
-      console.log("  Question: '%s'", q.name);
+      console.log("  Question: '%s'", q.name, q.type);
+
+      if (q.type === TYPE_TXT) {
+        const subdomain = q.name.toLowerCase().replace(new RegExp(`\.?${options.domain}$`, 'i'), '');
+        const txt = options.txtRecords[subdomain || '.'];
+        if (txt) {
+          response.answer.push(dns.TXT({
+            name:     q.name,
+            data:     [txt],
+            ttl:      options.ttl,
+          }));
+        }
+        return
+      }
 
       // Find labels
       var labels = q.name.toLowerCase().split('.');
@@ -171,7 +189,8 @@ if (!module.parent) {
     port:       parseInt(process.env.PORT || 55553),
     ttl:        parseInt(process.env.TTL || 600),
     domain:     process.env.DOMAIN,
-    secrets:    secrets
+    secrets:    secrets,
+    txtRecords: JSON.parse(process.env.TXT_RECORDS || '{}'),
   }).then(function(server) {
     // If the socket closes, there is no reason to stay alive
     server.once('close', function() {
